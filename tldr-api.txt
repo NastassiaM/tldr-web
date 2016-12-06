@@ -1,0 +1,63 @@
+API веб-сервиса “TL;DR”
+
+Проект вдохновлен https://github.com/tldr-pages/tldr. 
+По задумке, данный веб-сервис должен позволять не только просматривать tl;dr конкретной тулзы
+(как сделано тут https://tldr-pages.github.io/),
+но и лекго контрибьютить новые или обновлять существующие.
+
+
+- Архитектура API: REST (удобно передавать всё необходимое для выполнения запроса)
+- Формат передачи данных: JSON
+
+
+tl;dr-page:
+{
+	"links": {
+		"self": "/tldr/gcc"
+	}
+	"name": "gcc",
+	"desc": "Preprocesses and compiles C and C++ source files, then assembles and links them together.",
+	"examples": [
+		{
+			"command_line": "gcc {{source1.c}} {{source2.c}} -o {{executable}}",
+			"desc": "Compile multiple source files into executable"
+		}
+		...
+	]
+}
+
+
+Список всех tl;dr-pages:
+{
+	"links": {
+		"self": "/tldr"
+	}
+	"items": [
+		{
+			"name": "gcc",
+			"desc": "Preprocesses and compiles C and C++ source files, then assembles and links them together.",
+			"examples": [
+				{
+					"command_line": "gcc {{source1.c}} {{source2.c}} -o {{executable}}",
+					"desc": "Compile multiple source files into executable"
+				}
+				...
+			]
+		}
+		...
+	]
+}
+
+
+- Основные URI:
+
+Action			HTTP-method		URI
+----------------------------------------------------------------------------------
+All tl;dr-pages		GET			/tldr
+Create tl;dr-page	POST			/tldr
+Show tl;dr-page		GET			/tldr/:name
+Change tl;dr-page	PUT			/tldr/:name
+Delete tl;dr-page	DELETE			/tldr/:name
+
+
+В более сложном варианте можно добавить атомарность на уровне examples.
