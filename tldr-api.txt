@@ -8,44 +8,49 @@ API веб-сервиса “TL;DR”
 
 - Архитектура API: REST (удобно передавать всё необходимое для выполнения запроса)
 - Формат передачи данных: JSON
-
-
-tl;dr-page:
-{
-	"links": {
-		"self": "/tldr/gcc"
-	}
-	"name": "gcc",
-	"desc": "Preprocesses and compiles C and C++ source files, then assembles and links them together.",
-	"examples": [
-		{
-			"command_line": "gcc {{source1.c}} {{source2.c}} -o {{executable}}",
-			"desc": "Compile multiple source files into executable"
-		}
-		...
-	]
-}
+- Content-Type:application/hal+json
 
 
 Список всех tl;dr-pages:
 {
-	"links": {
-		"self": "/tldr"
-	}
-	"items": [
-		{
-			"name": "gcc",
-			"desc": "Preprocesses and compiles C and C++ source files, then assembles and links them together.",
-			"examples": [
-				{
-					"command_line": "gcc {{source1.c}} {{source2.c}} -o {{executable}}",
-					"desc": "Compile multiple source files into executable"
-				}
-				...
-			]
+	"_links": {
+		"self": "/tldr",
+		"curies": [{ "name": "nm", "href": "http://example.com/rels/{rel}", "templated": true }],
+        "nm:find": {
+           	"href": "/tldr{?name}",
+            "templated": true
+        },
+		"nm:add": {
+			"href": "/tldr/{name}",
+			"templated": true
 		}
-		...
-	]
+	}
+	"_embedded"
+	{
+		"nm:tldr_item": [
+			{
+				"_links": {
+					"self": "/tldr/gcc",
+					"nm:edit": "tldr/gcc/edit",
+					"nm:save": "/tldr/gcc"
+				}
+				"name": "gcc",
+				"desc": "Preprocesses and compiles C and C++ source files, then assembles and links them together.",
+				"nm:example": [
+					{
+						"_links": {
+							"self": "/tldr/gcc/#1"
+						}
+						"id": 1
+						"command_line": "gcc {{source1.c}} {{source2.c}} -o {{executable}}",
+						"desc": "Compile multiple source files into executable"
+					}
+					...
+				]
+			}
+			...
+		]
+	}
 }
 
 
@@ -54,10 +59,8 @@ tl;dr-page:
 Action			HTTP-method		URI
 ----------------------------------------------------------------------------------
 All tl;dr-pages		GET			/tldr
-Create tl;dr-page	POST			/tldr
-Show tl;dr-page		GET			/tldr/:name
-Change tl;dr-page	PUT			/tldr/:name
-Delete tl;dr-page	DELETE			/tldr/:name
-
-
-В более сложном варианте можно добавить атомарность на уровне examples.
+Find tl;dr-page		GET			/tldr?name
+Create tl;dr-page	PUT			/tldr/name
+Show tl;dr-page		GET			/tldr/name
+Edit tl;dr-page		GET			/tldr/name/edit
+Save modified		PUT			/tldr/name
