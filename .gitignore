@@ -1,2 +1,4 @@
-server
 *.out
+/.vscode
+/pkg
+/src/server
