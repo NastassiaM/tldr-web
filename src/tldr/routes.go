@@ -2,6 +2,8 @@ package tldr
 
 import "net/http"
 
+// Route stores info about particular route for http habdlers:
+// route name , http method, pattern string and handler function.
 type Route struct {
 	Name        string
 	Method      string
@@ -9,31 +11,32 @@ type Route struct {
 	HandlerFunc http.HandlerFunc
 }
 
+// Routes is just an alias for slice of Route.
 type Routes []Route
 
 var routes = Routes{
 	Route{
-		"Index",
+		"index",
 		"GET",
 		"/",
-		Index,
+		index,
 	},
 	Route{
-		"TLDRIndex",
+		"tldrIndex",
 		"GET",
 		"/tldr",
-		TLDRIndex,
+		tldrIndex,
 	},
 	Route{
-		"TLDRItem",
+		"tldrItem",
 		"GET",
 		"/tldr/{tldrName}",
-		TLDRItem,
+		tldrItem,
 	},
 	Route{
-		"TLDRCreate",
-		"POST",
+		"tldrCreate",
+		"PUT",
 		"/tldr",
-		TLDRCreate,
+		tldrCreate,
 	},
 }
