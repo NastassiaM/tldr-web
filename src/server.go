@@ -9,8 +9,9 @@ import (
 
 func main() {
 
-	router := tldr.NewRouter()
 	db.Init()
+	router := tldr.NewRouter()
+
 	log.Fatal(http.ListenAndServe(":8081", router))
 
 }

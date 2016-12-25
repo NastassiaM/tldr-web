@@ -1,12 +1,14 @@
 package db
 
-import "model"
-import "errors"
+import (
+	"errors"
+	"model"
+)
 
 var tldrs map[string]model.Page
 
-// TLDRs returns a slice of all known tldr-pages.
-func TLDRs() model.Pages {
+// OldTLDRs returns a slice of all known tldr-pages.
+func OldTLDRs() model.Pages {
 	res := make([]model.Page, 0, len(tldrs))
 	for _, v := range tldrs {
 		res = append(res, v)
@@ -15,16 +17,16 @@ func TLDRs() model.Pages {
 	return res
 }
 
-// Init is here to initialize our database and add some seed data.
-func Init() {
+// OldInit is here to initialize our database and add some seed data.
+func OldInit() {
 	tldrs = make(map[string]model.Page)
 	AddPage(model.Page{Name: "gcc"})
 	AddPage(model.Page{Name: "tar"})
 }
 
-// FindPage returns page by its name or an empty page and an error
+// OldFindPage returns page by its name or an empty page and an error
 // if nothing is found.
-func FindPage(name string) (model.Page, error) {
+func OldFindPage(name string) (model.Page, error) {
 	p, ok := tldrs[name]
 	if !ok {
 		return model.Page{}, errors.New("not found")
@@ -32,13 +34,15 @@ func FindPage(name string) (model.Page, error) {
 	return p, nil
 }
 
-// AddPage adds new page to the database or replaces the existing one
+// OldAddPage adds new page to the database or replaces the existing one
 // with the given name.
-func AddPage(p model.Page) {
+func OldAddPage(p model.Page) error {
 	tldrs[p.Name] = p
+	return nil
 }
 
-// RemovePage removes entry from database.
-func RemovePage(name string) {
+// OldRemovePage removes entry from database.
+func OldRemovePage(name string) error {
 	delete(tldrs, name)
+	return nil
 }

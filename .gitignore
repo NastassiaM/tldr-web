@@ -1,4 +1,6 @@
 *.out
 /.vscode
 /pkg
+server
 /src/server
+/src/debug
