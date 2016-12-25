@@ -17,9 +17,9 @@ func index(w http.ResponseWriter, r *http.Request) {
 }
 
 func tldrIndex(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(db.Tldrs); err != nil {
+	if err := json.NewEncoder(w).Encode(db.TLDRs()); err != nil {
 		panic(err)
 	}
 }
@@ -27,7 +27,20 @@ func tldrIndex(w http.ResponseWriter, r *http.Request) {
 func tldrItem(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	tldrName := vars["tldrName"]
-	fmt.Fprintln(w, "TL;DR name:", tldrName)
+	t, err := db.FindPage(tldrName)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusNotFound)
+		if err := json.NewEncoder(w).Encode(err); err != nil {
+			panic(err)
+		}
+		return
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(t); err != nil {
+		panic(err)
+	}
 }
 
 func tldrCreate(w http.ResponseWriter, r *http.Request) {
@@ -45,6 +58,7 @@ func tldrCreate(w http.ResponseWriter, r *http.Request) {
 		if err := json.NewEncoder(w).Encode(err); err != nil {
 			panic(err)
 		}
+		return
 	}
 
 	db.AddPage(tldrPage)

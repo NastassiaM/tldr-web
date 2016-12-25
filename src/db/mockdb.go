@@ -1,29 +1,44 @@
 package db
 
 import "model"
+import "errors"
 
-var Tldrs map[string]model.Page
+var tldrs map[string]model.Page
 
-// Give us some seed data
+// TLDRs returns a slice of all known tldr-pages.
+func TLDRs() model.Pages {
+	res := make([]model.Page, 0, len(tldrs))
+	for _, v := range tldrs {
+		res = append(res, v)
+	}
+
+	return res
+}
+
+// Init is here to initialize our database and add some seed data.
 func Init() {
-	Tldrs = make(map[string]model.Page)
+	tldrs = make(map[string]model.Page)
 	AddPage(model.Page{Name: "gcc"})
 	AddPage(model.Page{Name: "tar"})
 }
 
-func FindPage(name string) model.Page {
-	p, ok := Tldrs[name]
+// FindPage returns page by its name or an empty page and an error
+// if nothing is found.
+func FindPage(name string) (model.Page, error) {
+	p, ok := tldrs[name]
 	if !ok {
-		return model.Page{}
+		return model.Page{}, errors.New("not found")
 	}
-	return p
+	return p, nil
 }
 
-func AddPage(p model.Page) model.Page {
-	Tldrs[p.Name] = p
-	return p
+// AddPage adds new page to the database or replaces the existing one
+// with the given name.
+func AddPage(p model.Page) {
+	tldrs[p.Name] = p
 }
 
+// RemovePage removes entry from database.
 func RemovePage(name string) {
-	delete(Tldrs, name)
+	delete(tldrs, name)
 }
