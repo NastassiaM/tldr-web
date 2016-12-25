@@ -18,7 +18,6 @@ func TLDRs() model.Pages {
 	iter := session.Query("SELECT * FROM pages").Iter()
 	for iter.Scan(&name, &description) {
 		res = append(res, model.Page{Name: name, Description: description})
-		fmt.Println("Append")
 	}
 	if err := iter.Close(); err != nil {
 		panic(err)
@@ -32,9 +31,13 @@ func Init() {
 	cluster := gocql.NewCluster("127.0.0.1")
 	cluster.Keyspace = "tldr"
 	session, _ = cluster.CreateSession()
-	//defer session.Close()
 
 	AddPage(model.Page{Name: "gcc", Description: "Magic!"})
+}
+
+// Close closes the database session.
+func Close() {
+	session.Close()
 }
 
 // FindPage returns page by its name or an empty page and an error
