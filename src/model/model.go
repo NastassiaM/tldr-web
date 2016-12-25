@@ -1,4 +1,4 @@
-package tldr
+package model
 
 // Example represents a single example of command line tool usage
 // along with some short description.

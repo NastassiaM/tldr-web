@@ -30,4 +30,10 @@ var routes = Routes{
 		"/tldr/{tldrName}",
 		TLDRItem,
 	},
+	Route{
+		"TLDRCreate",
+		"POST",
+		"/tldr",
+		TLDRCreate,
+	},
 }

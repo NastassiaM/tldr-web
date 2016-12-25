@@ -1,6 +1,7 @@
 package main
 
 import (
+	"db"
 	"log"
 	"net/http"
 	"tldr"
@@ -9,7 +10,7 @@ import (
 func main() {
 
 	router := tldr.NewRouter()
-
+	db.Init()
 	log.Fatal(http.ListenAndServe(":8081", router))
 
 }
