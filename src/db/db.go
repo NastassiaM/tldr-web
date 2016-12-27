@@ -1,6 +1,7 @@
 package db
 
 import (
+	"encoding/json"
 	"errors"
 	"model"
 
@@ -14,10 +15,14 @@ var session *gocql.Session
 // TLDRs returns a slice of all known tldr-pages.
 func TLDRs() model.Pages {
 	res := make(model.Pages, 0)
-	var name, description string
-	iter := session.Query("SELECT * FROM pages").Iter()
-	for iter.Scan(&name, &description) {
-		res = append(res, model.Page{Name: name, Description: description})
+	var jsonPage []byte
+	var page model.Page
+	iter := session.Query("SELECT JSON * FROM pages").Iter()
+	for iter.Scan(&jsonPage) {
+		if err := json.Unmarshal(jsonPage, &page); err != nil {
+			panic(err)
+		}
+		res = append(res, page)
 	}
 	if err := iter.Close(); err != nil {
 		panic(err)
@@ -32,7 +37,7 @@ func Init() {
 	cluster.Keyspace = "tldr"
 	session, _ = cluster.CreateSession()
 
-	AddPage(model.Page{Name: "gcc", Description: "Magic!"})
+	//AddPage(model.Page{Name: "gcc", Description: "Magic!"})
 }
 
 // Close closes the database session.
@@ -43,19 +48,26 @@ func Close() {
 // FindPage returns page by its name or an empty page and an error
 // if nothing is found.
 func FindPage(name string) (model.Page, error) {
-	var _name, _description string
-	query := fmt.Sprintf("SELECT * FROM pages WHERE name='%s'", name)
-	if err := session.Query(query).Scan(&_name, &_description); err != nil {
+	var p []byte
+	var page model.Page
+	query := fmt.Sprintf("SELECT JSON * FROM pages WHERE name='%s'", name)
+	if err := session.Query(query).Scan(&p); err != nil {
 		return model.Page{}, errors.New("not found")
 	}
-	return model.Page{Name: _name, Description: _description}, nil
+	if err := json.Unmarshal(p, &page); err != nil {
+		return model.Page{}, errors.New("can't decode entry")
+	}
+	return page, nil
 }
 
 // AddPage adds new page to the database or replaces the existing one
 // with the given name.
 func AddPage(p model.Page) error {
-	query := fmt.Sprintf("INSERT INTO pages (name, description) VALUES ('%s', '%s')",
-		p.Name, p.Description)
+	jsonPage, err := json.Marshal(p)
+	if err != nil {
+		return err
+	}
+	query := fmt.Sprintf("INSERT INTO pages JSON '%s'", jsonPage)
 	if err := session.Query(query).Exec(); err != nil {
 		return err
 	}
