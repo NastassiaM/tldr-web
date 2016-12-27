@@ -20,8 +20,8 @@ func OldTLDRs() model.Pages {
 // OldInit is here to initialize our database and add some seed data.
 func OldInit() {
 	tldrs = make(map[string]model.Page)
-	AddPage(model.Page{Name: "gcc"})
-	AddPage(model.Page{Name: "tar"})
+	//AddPage(model.Page{Name: "gcc"})
+	//AddPage(model.Page{Name: "tar"})
 }
 
 // OldFindPage returns page by its name or an empty page and an error

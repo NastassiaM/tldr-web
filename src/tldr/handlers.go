@@ -19,7 +19,8 @@ func index(w http.ResponseWriter, r *http.Request) {
 func tldrIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(db.TLDRs()); err != nil {
+	_, err := w.Write(db.TLDRs())
+	if err != nil {
 		panic(err)
 	}
 }
@@ -27,7 +28,7 @@ func tldrIndex(w http.ResponseWriter, r *http.Request) {
 func tldrItem(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	tldrName := vars["tldrName"]
-	t, err := db.FindPage(tldrName)
+	p, err := db.FindPage(tldrName)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusNotFound)
@@ -38,7 +39,8 @@ func tldrItem(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(t); err != nil {
+	_, err = w.Write(p)
+	if err != nil {
 		panic(err)
 	}
 }
@@ -52,6 +54,8 @@ func tldrCreate(w http.ResponseWriter, r *http.Request) {
 	if err := r.Body.Close(); err != nil {
 		panic(err)
 	}
+
+	// check that we pass correct item to db
 	if err := json.Unmarshal(body, &tldrPage); err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
@@ -61,10 +65,10 @@ func tldrCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = db.AddPage(tldrPage)
+	err = db.AddPage(body)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusNotModified)
+		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
 			panic(err)
 		}
@@ -72,7 +76,8 @@ func tldrCreate(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(tldrPage); err != nil {
+	_, err = w.Write(body)
+	if err != nil {
 		panic(err)
 	}
 }

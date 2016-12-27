@@ -1,10 +1,8 @@
 package db
 
 import (
-	"encoding/json"
+	"bytes"
 	"errors"
-	"model"
-
 	"fmt"
 
 	"github.com/gocql/gocql"
@@ -13,21 +11,25 @@ import (
 var session *gocql.Session
 
 // TLDRs returns a slice of all known tldr-pages.
-func TLDRs() model.Pages {
-	res := make(model.Pages, 0)
+func TLDRs() []byte {
+	resArray := [][]byte{}
 	var jsonPage []byte
-	var page model.Page
 	iter := session.Query("SELECT JSON * FROM pages").Iter()
 	for iter.Scan(&jsonPage) {
-		if err := json.Unmarshal(jsonPage, &page); err != nil {
-			panic(err)
-		}
-		res = append(res, page)
+		resArray = append(resArray, jsonPage)
 	}
 	if err := iter.Close(); err != nil {
 		panic(err)
 	}
+	res := bytes.Join(resArray, []byte(`,`))
 
+	// insert '[' to the front
+	res = append(res, 0)
+	copy(res[1:], res[0:])
+	res[0] = byte('[')
+
+	// append ']'
+	res = append(res, ']')
 	return res
 }
 
@@ -47,27 +49,19 @@ func Close() {
 
 // FindPage returns page by its name or an empty page and an error
 // if nothing is found.
-func FindPage(name string) (model.Page, error) {
+func FindPage(name string) ([]byte, error) {
 	var p []byte
-	var page model.Page
 	query := fmt.Sprintf("SELECT JSON * FROM pages WHERE name='%s'", name)
 	if err := session.Query(query).Scan(&p); err != nil {
-		return model.Page{}, errors.New("not found")
+		return nil, errors.New("not found")
 	}
-	if err := json.Unmarshal(p, &page); err != nil {
-		return model.Page{}, errors.New("can't decode entry")
-	}
-	return page, nil
+	return p, nil
 }
 
 // AddPage adds new page to the database or replaces the existing one
 // with the given name.
-func AddPage(p model.Page) error {
-	jsonPage, err := json.Marshal(p)
-	if err != nil {
-		return err
-	}
-	query := fmt.Sprintf("INSERT INTO pages JSON '%s'", jsonPage)
+func AddPage(p []byte) error {
+	query := fmt.Sprintf("INSERT INTO pages JSON '%s'", p)
 	if err := session.Query(query).Exec(); err != nil {
 		return err
 	}
