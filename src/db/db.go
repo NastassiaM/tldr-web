@@ -62,7 +62,8 @@ func FindPage(name string) ([]byte, error) {
 // with the given name.
 func AddPage(p []byte) error {
 	query := fmt.Sprintf("INSERT INTO pages JSON '%s'", p)
-	if err := session.Query(query).Exec(); err != nil {
+	q := session.Query(query).Consistency(gocql.One)
+	if err := q.Exec(); err != nil {
 		return err
 	}
 	return nil
