@@ -12,25 +12,47 @@ var session *gocql.Session
 
 // TLDRs returns a slice of all known tldr-pages.
 func TLDRs() []byte {
-	resArray := [][]byte{}
-	var jsonPage []byte
+	jsonPage := []byte{}
+
+	c := make(chan []byte)
+	quit := make(chan int)
+	res := make(chan []byte)
+
+	go func(cc, r chan []byte, q chan int) {
+		resArray := [][]byte{}
+		for {
+			select {
+			case x := <-c:
+				resArray = append(resArray, x)
+			case <-q:
+				res := bytes.Join(resArray, []byte(`,`))
+
+				// insert '[' to the front
+				res = append(res, 0)
+				copy(res[1:], res[0:])
+				res[0] = byte('[')
+
+				// append ']'
+				res = append(res, ']')
+
+				r <- res
+
+				return
+			}
+		}
+	}(c, res, quit)
+
 	iter := session.Query("SELECT JSON * FROM pages").Iter()
 	for iter.Scan(&jsonPage) {
-		resArray = append(resArray, jsonPage)
+		c <- jsonPage
 	}
 	if err := iter.Close(); err != nil {
 		panic(err)
 	}
-	res := bytes.Join(resArray, []byte(`,`))
 
-	// insert '[' to the front
-	res = append(res, 0)
-	copy(res[1:], res[0:])
-	res[0] = byte('[')
+	quit <- 0
 
-	// append ']'
-	res = append(res, ']')
-	return res
+	return <-res
 }
 
 // Init is here to initialize our database and add some seed data.
